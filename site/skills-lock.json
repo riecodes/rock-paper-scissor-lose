@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "upstash-redis-js": {
+      "source": "upstash/skills",
+      "sourceType": "github",
+      "skillPath": "skills/upstash-redis-js/SKILL.md",
+      "computedHash": "933ed4157170e2209e22f7b525d95205c504e5545f3be01552ec8874ffef635a"
+    }
+  }
+}

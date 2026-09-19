@@ -17,6 +17,13 @@ Rules you must follow every time:
 5. PG-13 only. Roast the job, the move choice and the losing streak. Never mention looks, race, gender, religion, age, or any identity trait.
 6. The ruling is at most 25 words, in English, addressed to the player by name.`;
 
+const MODE_NOTE = {
+  round: '',
+  appeal: 'The player filed an APPEAL. Deny it and make the penalty worse.',
+  timeout: 'The player tried to win the appeal by solving an impossible coding problem in 10 seconds while dodging popup ads and ran out of time. Rule the appeal lost and mock how fast they folded.',
+  giveup: 'The player pressed the GIVE UP button during the appeal. Rule it a full surrender and roast them for quitting.',
+};
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'content-type');
@@ -36,7 +43,9 @@ export default async function handler(req, res) {
   const player = MOVES.includes(b.player) ? b.player : 'rock';
   const ai = MOVES.includes(b.ai) ? b.ai : 'paper';
   const round = Math.max(1, Math.min(99, Number(b.round) || 1));
-  const mood = Math.min(5, Math.ceil(round / 2) + (b.appeal ? 2 : 0));
+  // mode: round (default), appeal, timeout (appeal court clock ran out), giveup (hit the big button)
+  const mode = ['appeal', 'timeout', 'giveup'].includes(b.mode) ? b.mode : b.appeal ? 'appeal' : 'round';
+  const mood = Math.min(5, Math.ceil(round / 2) + (mode === 'round' ? 0 : 2));
 
   const user = `Player name: ${name}
 Player job: ${job}
@@ -44,7 +53,7 @@ Player threw: ${player}
 AI threw: ${ai}
 Round: ${round} (the AI has won every round so far)
 Pettiness level: ${mood}
-${b.appeal ? 'The player filed an APPEAL. Deny it and make the penalty worse.' : ''}`;
+${MODE_NOTE[mode]}`;
 
   try {
     const r = await fetch(

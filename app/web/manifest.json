@@ -1,11 +1,11 @@
 {
-    "name": "rps_lose",
-    "short_name": "rps_lose",
+    "name": "Rock Paper Scissor Lose!",
+    "short_name": "RPS Lose!",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFE500",
+    "theme_color": "#E8202A",
+    "description": "The rock paper scissors game you cannot win. An AI referee invents a rule every round and roasts your job.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
@@ -31,5 +31,7 @@
             "type": "image/png",
             "purpose": "maskable"
         }
-    ]
+    ],
+    "scope": ".",
+    "id": "/play/"
 }
