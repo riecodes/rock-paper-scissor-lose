@@ -1,0 +1,10 @@
+*.sync-conflict-*
+~syncthing~*
+.stfolder/
+.stversions/
+.vercel
+.env*
+site/play/
+art/png/
+art/check.png
+node_modules/
