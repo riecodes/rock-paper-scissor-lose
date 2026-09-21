@@ -5,6 +5,7 @@
 .vercel
 .env*
 site/play/
+site/public/
 art/png/
 art/check.png
 node_modules/

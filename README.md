@@ -15,9 +15,9 @@ Rock paper scissors against an AI that can't lose. Each round a Gemini "referee"
 The Vercel project Root Directory is `site`, with **Include source files outside
 of the Root Directory** enabled. Every deployment runs
 `site/scripts/build-flutter-web.sh`, which fetches the exact Flutter revision
-recorded in `app/.metadata` and builds `app/` into the ignored `site/play/`
-directory. Generated Flutter web assets are therefore deployed without being
-committed to Git.
+recorded in `app/.metadata`, stages the landing page in the ignored
+`site/public/` directory, and builds `app/` into `site/public/play/`. Generated
+Flutter web assets are therefore deployed without being committed to Git.
 
 ## How the AI is broken on purpose (Bonus 1)
 

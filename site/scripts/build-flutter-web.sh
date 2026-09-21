@@ -9,16 +9,11 @@ FLUTTER_REVISION="db50e20168db8fee486b9abf32fc912de3bc5b6a"
 
 REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 APP_DIRECTORY="${REPOSITORY_ROOT}/app"
-OUTPUT_DIRECTORY="${REPOSITORY_ROOT}/site/play"
+SITE_DIRECTORY="${REPOSITORY_ROOT}/site"
+PUBLIC_DIRECTORY="${SITE_DIRECTORY}/public"
+OUTPUT_DIRECTORY="${PUBLIC_DIRECTORY}/play"
 TEMPORARY_ROOT="${TMPDIR:-/tmp}"
 FLUTTER_DIRECTORY="${FLUTTER_ROOT:-${TEMPORARY_ROOT}/flutter-${FLUTTER_REVISION}}"
-
-for required_command in git unzip; do
-  if ! command -v "${required_command}" >/dev/null 2>&1; then
-    echo "Required build command not found: ${required_command}"
-    exit 1
-  fi
-done
 
 if [[ ! -f "${APP_DIRECTORY}/pubspec.yaml" ]]; then
   echo "Flutter source not found at ${APP_DIRECTORY}."
@@ -32,6 +27,13 @@ if ! grep -Fq "revision: \"${FLUTTER_REVISION}\"" "${APP_DIRECTORY}/.metadata"; 
 fi
 
 if [[ ! -f "${FLUTTER_DIRECTORY}/bin/flutter" ]]; then
+  for required_command in git unzip; do
+    if ! command -v "${required_command}" >/dev/null 2>&1; then
+      echo "Required build command not found: ${required_command}"
+      exit 1
+    fi
+  done
+
   rm -rf "${FLUTTER_DIRECTORY}"
   mkdir -p "${FLUTTER_DIRECTORY}"
 
@@ -59,7 +61,14 @@ flutter precache --web
 
 cd "${APP_DIRECTORY}"
 flutter pub get --enforce-lockfile
-rm -rf "${OUTPUT_DIRECTORY}"
+
+rm -rf "${PUBLIC_DIRECTORY}"
+mkdir -p "${PUBLIC_DIRECTORY}"
+cp "${SITE_DIRECTORY}/index.html" "${PUBLIC_DIRECTORY}/index.html"
+for static_directory in ads img sfx; do
+  cp -R "${SITE_DIRECTORY}/${static_directory}" "${PUBLIC_DIRECTORY}/${static_directory}"
+done
+
 flutter build web \
   --release \
   --no-pub \
@@ -67,5 +76,6 @@ flutter build web \
   --base-href /play/ \
   --output "${OUTPUT_DIRECTORY}"
 
+test -f "${PUBLIC_DIRECTORY}/index.html"
 test -f "${OUTPUT_DIRECTORY}/index.html"
 echo "Flutter web build created at ${OUTPUT_DIRECTORY}."
