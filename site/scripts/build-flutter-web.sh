@@ -4,6 +4,7 @@ set -euo pipefail
 
 # Keep this revision aligned with app/.metadata. Fetching the exact revision
 # makes Vercel builds reproducible without committing generated web assets.
+FLUTTER_VERSION="3.41.6"
 FLUTTER_REVISION="db50e20168db8fee486b9abf32fc912de3bc5b6a"
 
 REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -39,8 +40,14 @@ if [[ ! -f "${FLUTTER_DIRECTORY}/bin/flutter" ]]; then
   git -C "${FLUTTER_DIRECTORY}" -c protocol.version=2 fetch \
     --depth=1 \
     --filter=blob:none \
-    origin "${FLUTTER_REVISION}"
-  git -C "${FLUTTER_DIRECTORY}" checkout --quiet --detach FETCH_HEAD
+    origin "refs/tags/${FLUTTER_VERSION}:refs/tags/${FLUTTER_VERSION}"
+  git -C "${FLUTTER_DIRECTORY}" checkout --quiet --detach "refs/tags/${FLUTTER_VERSION}"
+
+  actual_revision="$(git -C "${FLUTTER_DIRECTORY}" rev-parse HEAD)"
+  if [[ "${actual_revision}" != "${FLUTTER_REVISION}" ]]; then
+    echo "Flutter ${FLUTTER_VERSION} resolved to unexpected revision ${actual_revision}."
+    exit 1
+  fi
 fi
 
 export CI=true
