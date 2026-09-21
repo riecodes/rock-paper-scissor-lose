@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Keep this revision aligned with app/.metadata. Fetching the exact revision
+# makes Vercel builds reproducible without committing generated web assets.
+FLUTTER_REVISION="db50e20168db8fee486b9abf32fc912de3bc5b6a"
+
+REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+APP_DIRECTORY="${REPOSITORY_ROOT}/app"
+OUTPUT_DIRECTORY="${REPOSITORY_ROOT}/site/play"
+TEMPORARY_ROOT="${TMPDIR:-/tmp}"
+FLUTTER_DIRECTORY="${FLUTTER_ROOT:-${TEMPORARY_ROOT}/flutter-${FLUTTER_REVISION}}"
+
+for required_command in git unzip; do
+  if ! command -v "${required_command}" >/dev/null 2>&1; then
+    echo "Required build command not found: ${required_command}"
+    exit 1
+  fi
+done
+
+if [[ ! -f "${APP_DIRECTORY}/pubspec.yaml" ]]; then
+  echo "Flutter source not found at ${APP_DIRECTORY}."
+  echo "Enable 'Include source files outside of the Root Directory' in Vercel."
+  exit 1
+fi
+
+if ! grep -Fq "revision: \"${FLUTTER_REVISION}\"" "${APP_DIRECTORY}/.metadata"; then
+  echo "FLUTTER_REVISION does not match app/.metadata."
+  exit 1
+fi
+
+if [[ ! -f "${FLUTTER_DIRECTORY}/bin/flutter" ]]; then
+  rm -rf "${FLUTTER_DIRECTORY}"
+  mkdir -p "${FLUTTER_DIRECTORY}"
+
+  git -C "${FLUTTER_DIRECTORY}" init --quiet
+  git -C "${FLUTTER_DIRECTORY}" remote add origin https://github.com/flutter/flutter.git
+  git -C "${FLUTTER_DIRECTORY}" -c protocol.version=2 fetch \
+    --depth=1 \
+    --filter=blob:none \
+    origin "${FLUTTER_REVISION}"
+  git -C "${FLUTTER_DIRECTORY}" checkout --quiet --detach FETCH_HEAD
+fi
+
+export CI=true
+export PATH="${FLUTTER_DIRECTORY}/bin:${PATH}"
+export PUB_CACHE="${PUB_CACHE:-${TEMPORARY_ROOT}/flutter-pub-cache}"
+
+flutter config --no-analytics
+flutter precache --web
+
+cd "${APP_DIRECTORY}"
+flutter pub get --enforce-lockfile
+rm -rf "${OUTPUT_DIRECTORY}"
+flutter build web \
+  --release \
+  --no-pub \
+  --no-wasm-dry-run \
+  --base-href /play/ \
+  --output "${OUTPUT_DIRECTORY}"
+
+test -f "${OUTPUT_DIRECTORY}/index.html"
+echo "Flutter web build created at ${OUTPUT_DIRECTORY}."

@@ -1,1 +1,7 @@
-{ "type": "module" }
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bash scripts/build-flutter-web.sh"
+  }
+}
