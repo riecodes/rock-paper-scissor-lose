@@ -7,12 +7,19 @@ Rock paper scissors against an AI that can't lose. Each round a Gemini "referee"
 > SECTION 4A: Scissors are void. It's because you're a vibecoder.
 
 - `app/` is the Flutter app (Android, macOS, web). The hands are AI-generated pop-art PNGs traced to SVG with vtracer (`art/slice.py`), animated with comic smear frames.
-- `site/` is the landing page at rps.riecodes.com, `/play` (Flutter web build), and `/api/ruling` (Vercel function that keeps the Gemini key server-side).
+- `site/` is the landing page at rps.riecodes.com, `/play` (Flutter web build), and `/api/ruling` (keeps the Gemini key server-side).
 - `.github/workflows/release.yml` builds the APK and an unsigned DMG, then attaches both to a GitHub Release.
 
-## Vercel deployment
+## Cloudflare deployment
 
-The Vercel project Root Directory is `site`, with **Include source files outside
+rps.riecodes.com is Cloudflare Worker `rps` (`site/wrangler.jsonc`). `site/worker.js` serves `site/public/` and runs the
+same `site/api/` handlers. Stage `site/public/` (landing page plus the Flutter build in `play/`), then run
+`npx wrangler deploy --config wrangler.jsonc` in `site/`. Keys are Worker secrets, never `.env.local` uploads.
+Check the shim with `node --test worker.test.mjs`.
+
+## Vercel deployment (rollback)
+
+The Vercel project stays attached for rollback. The Vercel project Root Directory is `site`, with **Include source files outside
 of the Root Directory** enabled. Every deployment runs
 `site/scripts/build-flutter-web.sh`, which fetches the exact Flutter revision
 recorded in `app/.metadata`, stages the landing page in the ignored
